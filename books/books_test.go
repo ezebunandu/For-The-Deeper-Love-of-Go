@@ -2,6 +2,7 @@ package books_test
 
 import (
 	"books"
+	"cmp"
 	"slices"
 	"testing"
 )
@@ -24,19 +25,22 @@ func TestBookToString__FormatsBookInfoAsString(t *testing.T) {
 func TestGetAllBooks__ReturnsAllBooksInCatalog(t *testing.T){
     want := []books.Book{
         {
-            ID: "1",
+            ID: "abc",
             Title: "Purple Hibiscus",
             Author: "Chimamanda Ngozi Adichie",
             Copies: 23,
         },
         {
-            ID: "2",
+            ID: "xyz",
             Title: "The Thing Around Your Neck",
             Author: "Chimamanda Ngozi Adichie",
             Copies: 21,
         },
     }
     got := books.GetAllBooks()
+    slices.SortFunc(got, func(a, b books.Book) int {
+        return cmp.Compare(a.ID, b.ID)
+    })
     if !slices.Equal(want, got){
         t.Fatalf("want %#v, got %#v", want, got)
     }
@@ -45,12 +49,12 @@ func TestGetAllBooks__ReturnsAllBooksInCatalog(t *testing.T){
 func TestGetBook__FindsBookInCatalogByID(t *testing.T){
     t.Parallel()
     want := books.Book{
-            ID: "1",
+            ID: "abc",
             Title: "Purple Hibiscus",
             Author: "Chimamanda Ngozi Adichie",
             Copies: 23,
     }
-    got, ok := books.GetBook("1")
+    got, ok := books.GetBook("abc")
     if !ok {
         t.Fatal("book not found")
     }
