@@ -18,5 +18,5 @@ func main() {
         fmt.Println("Sorry, couldn't find that book in the catalog")
         return
     }
-    fmt.Println(books.BookToString(book))
+    fmt.Println(book)
 }

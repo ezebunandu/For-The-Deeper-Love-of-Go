@@ -15,7 +15,7 @@ func TestBookToString__FormatsBookInfoAsString(t *testing.T) {
 		Copies: 2,
 	}
 	want := "We Must Set Forth At Dawn by Wole Soyinka (copies: 2)"
-	got := books.BookToString(input)
+	got := input.String()
 
 	if want != got {
 		t.Fatalf("want %q, got %q", want, got)

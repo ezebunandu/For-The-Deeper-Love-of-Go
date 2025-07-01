@@ -23,8 +23,8 @@ func GetBook(catalog map[string]Book, ID string) (Book, bool) {
     return  book, ok
 }
 
-func BookToString(book Book) string {
-    return  fmt.Sprintf("%v by %v (copies: %d)", book.Title, book.Author, book.Copies)
+func (b Book) String() string {
+    return  fmt.Sprintf("%v by %v (copies: %d)", b.Title, b.Author, b.Copies)
 }
 
 func AddBook(catalog map[string]Book, b Book){
