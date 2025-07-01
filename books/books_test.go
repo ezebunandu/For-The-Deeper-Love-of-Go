@@ -38,7 +38,7 @@ func TestGetAllBooks__ReturnsAllBooksInCatalog(t *testing.T) {
 			Copies: 21,
 		},
 	}
-	got := books.GetAllBooks(c)
+	got := c.GetAllBooks()
 	slices.SortFunc(got, func(a, b books.Book) int {
 		return cmp.Compare(a.ID, b.ID)
 	})
@@ -56,7 +56,7 @@ func TestGetBook__FindsBookInCatalogByID(t *testing.T) {
 		Author: "Chimamanda Ngozi Adichie",
 		Copies: 23,
 	}
-	got, ok := books.GetBook(c, "abc")
+	got, ok := c.GetBook("abc")
 	if !ok {
 		t.Fatal("book not found")
 	}
@@ -69,7 +69,7 @@ func TestGetBook__FindsBookInCatalogByID(t *testing.T) {
 func TestGetBook__ReturnsFalseWhenBookNotInCatalog(t *testing.T) {
 	t.Parallel()
 	c := getTestCatalog()
-	_, ok := books.GetBook(c, "nonexistent ID")
+	_, ok := c.GetBook("nonexistent ID")
 	if ok {
 		t.Fatalf("want false for nonexistent ID, got true")
 	}
@@ -78,24 +78,24 @@ func TestGetBook__ReturnsFalseWhenBookNotInCatalog(t *testing.T) {
 func TestAddBook__AddsGivenBookToCatalog(t *testing.T) {
 	t.Parallel()
 	c := getTestCatalog()
-	_, ok := books.GetBook(c, "123")
+	_, ok := c.GetBook("123")
 	if ok {
 		t.Fatal("book already present")
 	}
-	books.AddBook(c, books.Book{
+	c.AddBook(books.Book{
 		ID:     "123",
 		Title:  "One Day I will Write About This Place",
 		Author: "Binyavinga Wainana",
 		Copies: 8,
 	})
-	_, ok = books.GetBook(c, "123")
+	_, ok = c.GetBook("123")
 	if !ok {
 		t.Fatal("added book not found")
 	}
 }
 
-func getTestCatalog() map[string]books.Book {
-	return map[string]books.Book{
+func getTestCatalog() books.Catalog {
+	return books.Catalog{
 		"abc": {
 			ID:     "abc",
 			Title:  "Purple Hibiscus",
