@@ -1,0 +1,14 @@
+{
+    "abc": {
+		"ID": "abc",
+		"Title":  "Purple Hibiscus",
+		"Author": "Chimamanda Ngozi Adichie",
+		"Copies": 23
+	},
+    "xyz": {
+		"ID":     "xyz",
+		"Title":  "The Thing Around Your Neck",
+		"Author": "Chimamanda Ngozi Adichie",
+		"Copies": 21
+	}
+}
