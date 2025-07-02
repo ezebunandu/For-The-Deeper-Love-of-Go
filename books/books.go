@@ -50,3 +50,11 @@ func GetCatalog() Catalog {
     },
     }
 }
+
+func (b *Book) SetCopies(copies int) error {
+    if copies < 0 {
+        return fmt.Errorf("invalid copies %d", copies)
+    }
+    b.Copies = copies
+    return nil
+}
