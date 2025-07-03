@@ -23,28 +23,10 @@ func TestBookToString__FormatsBookInfoAsString(t *testing.T) {
 }
 
 func TestGetAllBooks__ReturnsAllBooksInCatalog(t *testing.T) {
-	c := getTestCatalog()
-	want := []books.Book{
-		{
-			ID:     "abc",
-			Title:  "Purple Hibiscus",
-			Author: "Chimamanda Ngozi Adichie",
-			Copies: 23,
-		},
-		{
-			ID:     "xyz",
-			Title:  "The Thing Around Your Neck",
-			Author: "Chimamanda Ngozi Adichie",
-			Copies: 21,
-		},
-	}
-	got := c.GetAllBooks()
-	slices.SortFunc(got, func(a, b books.Book) int {
-		return cmp.Compare(a.ID, b.ID)
-	})
-	if !slices.Equal(want, got) {
-		t.Fatalf("want %#v, got %#v", want, got)
-	}
+	t.Parallel()
+    catalog := getTestCatalog()
+    got := catalog.GetAllBooks()
+    assertTestBooks(t, got) 
 }
 
 func TestGetBook__FindsBookInCatalogByID(t *testing.T) {
@@ -140,6 +122,12 @@ func TestOpenCatalog__LoadsCatalogDataFromFile(t *testing.T){
     if err != nil {
         t.Fatal(err)
     }
+    got := catalog.GetAllBooks()
+    assertTestBooks(t, got)
+}
+
+func assertTestBooks(t *testing.T, got []books.Book) {
+    t.Helper()
     want := []books.Book{
 		{
 			ID:     "abc",
@@ -154,7 +142,6 @@ func TestOpenCatalog__LoadsCatalogDataFromFile(t *testing.T){
 			Copies: 21,
 		},
 	}
-    got := catalog.GetAllBooks()
     slices.SortFunc(got, func(a, b books.Book) int {
         return cmp.Compare(a.ID, b.ID)
     })
