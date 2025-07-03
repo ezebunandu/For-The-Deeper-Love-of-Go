@@ -74,3 +74,15 @@ func OpenCatalog(path string) (Catalog, error) {
     }
     return  catalog, nil
 }
+
+func (c Catalog) Sync(path string) error {
+    file, err := os.Create(path)
+    if err != nil {
+        return  err
+    }
+    err = json.NewEncoder(file).Encode(c)
+    if err != nil {
+        return  err
+    }
+    return  nil
+}

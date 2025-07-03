@@ -116,13 +116,19 @@ func TestSetCopies__ReturnsErrorIfCopiesNegative(t *testing.T){
     }
 }
 
-func TestOpenCatalog__LoadsCatalogDataFromFile(t *testing.T){
+func TestOpenCatalog__ReadsSameDataWrittenBySync(t *testing.T){
     t.Parallel()
-    catalog, err := books.OpenCatalog("testdata/catalog")
+    catalog := getTestCatalog()
+    path := t.TempDir() + "/catalog"
+    err := catalog.Sync(path)
     if err != nil {
         t.Fatal(err)
     }
-    got := catalog.GetAllBooks()
+    newCatalog, err := books.OpenCatalog(path)
+    if err != nil {
+        t.Fatal(err)
+    }
+    got := newCatalog.GetAllBooks()
     assertTestBooks(t, got)
 }
 
