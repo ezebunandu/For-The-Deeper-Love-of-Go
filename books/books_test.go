@@ -12,9 +12,9 @@ func TestBookToString__FormatsBookInfoAsString(t *testing.T) {
 	input := books.Book{
 		Title:  "We Must Set Forth At Dawn",
 		Author: "Wole Soyinka",
-		Copies: 2,
+		Copies: 1,
 	}
-	want := "We Must Set Forth At Dawn by Wole Soyinka (copies: 2)"
+	want := "We Must Set Forth At Dawn by Wole Soyinka (copies: 1)"
 	got := input.String()
 
 	if want != got {
@@ -36,7 +36,7 @@ func TestGetBook__FindsBookInCatalogByID(t *testing.T) {
 		ID:     "abc",
 		Title:  "Purple Hibiscus",
 		Author: "Chimamanda Ngozi Adichie",
-		Copies: 23,
+		Copies: 1,
 	}
 	got, ok := c.GetBook("abc")
 	if !ok {
@@ -68,7 +68,7 @@ func TestAddBook__AddsGivenBookToCatalog(t *testing.T) {
 		ID:     "123",
 		Title:  "One Day I will Write About This Place",
 		Author: "Binyavinga Wainana",
-		Copies: 8,
+		Copies: 1,
 	})
 	_, ok = c.GetBook("123")
 	if !ok {
@@ -82,13 +82,13 @@ func getTestCatalog() books.Catalog {
 			ID:     "abc",
 			Title:  "Purple Hibiscus",
 			Author: "Chimamanda Ngozi Adichie",
-			Copies: 23,
+			Copies: 1,
 		},
 		"xyz": {
 			ID:     "xyz",
 			Title:  "The Thing Around Your Neck",
 			Author: "Chimamanda Ngozi Adichie",
-			Copies: 21,
+			Copies: 1,
 		},
 	}
 }
@@ -96,13 +96,13 @@ func getTestCatalog() books.Catalog {
 func TestSetCopies__SetsNumberOfCopiesToGivenvalue(t *testing.T){
     t.Parallel()
     book :=books.Book{
-        Copies: 5,
+        Copies: 1,
     }
-    err := book.SetCopies(12)
+    err := book.SetCopies(2)
     if err != nil {
         t.Fatal(err)
     }
-    if book.Copies != 12 {
+    if book.Copies != 2 {
         t.Errorf("want 12 copies, got %d", book.Copies)
     }
 }
@@ -139,13 +139,13 @@ func assertTestBooks(t *testing.T, got []books.Book) {
 			ID:     "abc",
 			Title:  "Purple Hibiscus",
 			Author: "Chimamanda Ngozi Adichie",
-			Copies: 23,
+			Copies: 1,
 		},
 		{
 			ID:     "xyz",
 			Title:  "The Thing Around Your Neck",
 			Author: "Chimamanda Ngozi Adichie",
-			Copies: 21,
+			Copies: 1,
 		},
 	}
     slices.SortFunc(got, func(a, b books.Book) int {
