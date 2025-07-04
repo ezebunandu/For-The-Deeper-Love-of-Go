@@ -64,12 +64,15 @@ func TestAddBook__AddsGivenBookToCatalog(t *testing.T) {
 	if ok {
 		t.Fatal("book already present")
 	}
-	c.AddBook(books.Book{
+	err := c.AddBook(books.Book{
 		ID:     "123",
 		Title:  "One Day I will Write About This Place",
 		Author: "Binyavinga Wainana",
 		Copies: 1,
 	})
+    if err != nil {
+        t.Fatal(err)
+    }
 	_, ok = c.GetBook("123")
 	if !ok {
 		t.Fatal("added book not found")
@@ -153,5 +156,47 @@ func assertTestBooks(t *testing.T, got []books.Book) {
     })
     if ! slices.Equal(want, got) {
         t.Fatalf("want %#v, got %#v", want, got)
+    }
+}
+
+func TestSetCopies__OnCatalogModifiesSpecifiedBook(t *testing.T){
+    t.Parallel()
+    catalog := getTestCatalog()
+    book, ok := catalog.GetBook("abc")
+    if !ok {
+        t.Fatal("book not found")
+    }
+    if book.Copies != 1 {
+        t.Fatalf("want 1 copy before change, got %d", book.Copies)
+    }
+    err := catalog.SetCopies("abc", 2)
+    if err != nil {
+        t.Fatal(err)
+    }
+    book, ok = catalog.GetBook("abc")
+    if !ok {
+        t.Fatal("book not found")
+    }
+    if book.Copies != 2 {
+        t.Fatalf("want 2 copies after change, got %d", book.Copies)
+    }
+}
+
+func TestAddBook__ReturnsErrorWhenBookAlreadyInCatalog(t *testing.T){
+    t.Parallel()
+    catalog := getTestCatalog()
+    _, ok := catalog.GetBook("abc")
+    if !ok{
+        t.Fatal("book not present")
+    }
+    err := catalog.AddBook(books.Book{
+			ID:     "abc",
+			Title:  "Purple Hibiscus",
+			Author: "Chimamanda Ngozi Adichie",
+			Copies: 1,},
+        )
+
+    if err == nil {
+        t.Fatal("want error when book ID already in catalog, got nil")
     }
 }

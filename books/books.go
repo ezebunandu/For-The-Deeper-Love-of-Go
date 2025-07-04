@@ -6,6 +6,7 @@ import (
 	"maps"
 	"os"
 	"slices"
+
 )
 
 type Book struct {
@@ -30,8 +31,13 @@ func (b Book) String() string {
     return  fmt.Sprintf("%v by %v (copies: %d)", b.Title, b.Author, b.Copies)
 }
 
-func (c Catalog) AddBook(b Book){
+func (c Catalog) AddBook (b Book) error {
+    _, ok := c.GetBook(b.ID)
+    if ok {
+        return  fmt.Errorf("book already present in catalog")
+    }
     c[b.ID] = b
+    return  nil
 }
 
 func GetCatalog() Catalog {
@@ -84,5 +90,18 @@ func (c Catalog) Sync(path string) error {
     if err != nil {
         return  err
     }
+    return  nil
+}
+
+func (c Catalog) SetCopies(ID string, copies int) error {
+    book, ok := c.GetBook(ID)
+    if !ok {
+        return fmt.Errorf("ID %q not in found", ID)
+    }
+    err := book.SetCopies(copies)
+    if err != nil {
+        return  err
+    }
+    c[ID] = book
     return  nil
 }
