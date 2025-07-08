@@ -79,21 +79,27 @@ func TestAddBook__AddsGivenBookToCatalog(t *testing.T) {
 	}
 }
 
-func getTestCatalog() books.Catalog {
-	return books.Catalog{
-		"abc": {
-			ID:     "abc",
-			Title:  "Purple Hibiscus",
-			Author: "Chimamanda Ngozi Adichie",
-			Copies: 1,
-		},
-		"xyz": {
-			ID:     "xyz",
-			Title:  "The Thing Around Your Neck",
-			Author: "Chimamanda Ngozi Adichie",
-			Copies: 1,
-		},
-	}
+func getTestCatalog() *books.Catalog {
+    catalog := books.NewCatalog()
+    err := catalog.AddBook(books.Book{
+        ID:     "abc",
+        Title:  "Purple Hibiscus",
+        Author: "Chimamanda Ngozi Adichie",
+        Copies: 1,
+    })
+    if err != nil {
+        panic(err)
+    }
+    err = catalog.AddBook(books.Book{
+        ID:     "xyz",
+        Title:  "The Thing Around Your Neck",
+        Author: "Chimamanda Ngozi Adichie",
+        Copies: 1,
+    })
+    if err != nil {
+        panic(err)
+    }
+    return  catalog
 }
 
 func TestSetCopies__SetsNumberOfCopiesToGivenvalue(t *testing.T){
@@ -198,5 +204,33 @@ func TestAddBook__ReturnsErrorWhenBookAlreadyInCatalog(t *testing.T){
 
     if err == nil {
         t.Fatal("want error when book ID already in catalog, got nil")
+    }
+}
+
+func TestSetCopies__IsRaceFree(t *testing.T){
+    t.Parallel()
+    catalog := getTestCatalog()
+    go func(){
+        for range 100 {
+            err := catalog.SetCopies("abc", 0)
+            if err != nil {
+                panic(err)
+            }
+        }
+    }()
+    for range 100 {
+        _, err := catalog.GetCopies("abc")
+        if err != nil {
+            t.Fatal(err)
+        }
+    }
+}
+
+func TestNewCatalog__CreatesEmptyCatalog(t *testing.T){
+    t.Parallel()
+    catalog := books.NewCatalog()
+    books := catalog.GetAllBooks()
+    if len(books) > 0 {
+        t.Errorf("want empty catalog, got %#v", books)
     }
 }
