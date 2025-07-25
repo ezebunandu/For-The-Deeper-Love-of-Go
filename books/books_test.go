@@ -3,6 +3,10 @@ package books_test
 import (
 	"books"
 	"cmp"
+	"encoding/json"
+	"io"
+	"net"
+	"net/http"
 	"slices"
 	"testing"
 )
@@ -233,4 +237,44 @@ func TestNewCatalog__CreatesEmptyCatalog(t *testing.T){
     if len(books) > 0 {
         t.Errorf("want empty catalog, got %#v", books)
     }
+}
+
+func TestServer__ListsAllBooks(t *testing.T){
+    t.Parallel()
+    addr := randomLocalAddr(t)
+    go func(){
+        err := books.ListenAndServe(addr, getTestCatalog())
+        if err != nil {
+            panic(err)
+        }
+    }()
+    resp, err := http.Get("http://" + addr)
+    if err != nil {
+        t.Fatal(err)
+    }
+    defer resp.Body.Close()
+    if resp.StatusCode != http.StatusOK {
+        t.Fatalf("unexpected status %d", resp.StatusCode)
+    }
+    got := []books.Book{}
+    data, err := io.ReadAll(resp.Body)
+    if err != nil {
+        t.Fatal(err)
+    }
+    err = json.Unmarshal(data, &got)
+    if err != nil {
+        t.Fatalf("%v in %q", err, data)
+    }
+    assertTestBooks(t, got)
+
+}
+
+func randomLocalAddr(t *testing.T) string {
+    t.Helper()
+    l, err := net.Listen("tcp", ":0")
+    if err != nil {
+        t.Fatal(err)
+    }
+    defer l.Close()
+    return l.Addr().String()
 }
