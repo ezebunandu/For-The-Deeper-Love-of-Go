@@ -269,6 +269,44 @@ func TestServer__ListsAllBooks(t *testing.T){
 
 }
 
+func TestServer__FindBookABC(t *testing.T){
+    t.Parallel()
+    addr := randomLocalAddr(t)
+    go func(){
+        err := books.ListenAndServe(addr, getTestCatalog())
+        if err != nil {
+            panic(err)
+        }
+    }()
+    resp, err := http.Get("http://" + addr + "/find/abc")
+    if err != nil {
+        t.Fatal(err)
+    }
+    defer resp.Body.Close()
+    if resp.StatusCode != http.StatusOK {
+        t.Fatalf("unexpected status %d", resp.StatusCode)
+    }
+    got := books.Book{}
+    data, err := io.ReadAll(resp.Body)
+    if err != nil {
+        t.Fatal(err)
+    }
+    err = json.Unmarshal(data, &got)
+    if err != nil {
+        t.Fatalf("%v in %q", err, data)
+    }
+    want := books.Book{
+        ID: "abc",
+        Title: "Purple Hibiscus",
+        Author: "Chimamanda Ngozi Adichie",
+        Copies: 1,
+    }
+    if want != got {
+        t.Fatalf("want %#v, got %#v", want, got)
+    }
+
+}
+
 func randomLocalAddr(t *testing.T) string {
     t.Helper()
     l, err := net.Listen("tcp", ":0")
