@@ -8,14 +8,14 @@ import (
 
 func ListenAndServe(addr string, catalog *Catalog) error {
     mux := http.NewServeMux()
-    mux.HandleFunc("/list", func(w http.ResponseWriter, r *http.Request) {
+    mux.HandleFunc("/v1/list", func(w http.ResponseWriter, r *http.Request) {
         books := catalog.GetAllBooks()
         err := json.NewEncoder(w).Encode(books)
         if err != nil {
             panic(err)
         }
     })
-    mux.HandleFunc("/find/{id}", func(w http.ResponseWriter, r *http.Request) {
+    mux.HandleFunc("/v1/find/{id}", func(w http.ResponseWriter, r *http.Request) {
         ID := r.PathValue("id")
         book, ok := catalog.GetBook(ID)
         if !ok {
