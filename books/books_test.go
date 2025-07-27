@@ -307,6 +307,25 @@ func TestServer__FindBookABC(t *testing.T){
 
 }
 
+func TestFind__ReturnsNotFoundWhenBookNotFound(t *testing.T){
+    t.Parallel()
+    addr := randomLocalAddr(t)
+    go func(){
+        err := books.ListenAndServe(addr, getTestCatalog())
+        if err != nil {
+            panic(err)
+        }
+    }()
+    resp, err := http.Get("http://" + addr + "/v1/find/bogus")
+    if err != nil {
+        t.Fatal(err)
+    }
+    defer resp.Body.Close()
+    if resp.StatusCode != http.StatusNotFound {
+        t.Fatalf("unexpected status %d", resp.StatusCode)
+    }
+}
+
 func randomLocalAddr(t *testing.T) string {
     t.Helper()
     l, err := net.Listen("tcp", ":0")
