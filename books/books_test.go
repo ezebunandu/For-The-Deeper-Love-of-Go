@@ -133,7 +133,8 @@ func TestOpenCatalog__ReadsSameDataWrittenBySync(t *testing.T){
     t.Parallel()
     catalog := getTestCatalog()
     path := t.TempDir() + "/catalog"
-    err := catalog.Sync(path)
+    catalog.Path = path
+    err := catalog.Sync()
     if err != nil {
         t.Fatal(err)
     }

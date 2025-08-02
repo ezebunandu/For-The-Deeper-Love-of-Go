@@ -20,6 +20,7 @@ type Book struct {
 type Catalog struct {
     mu *sync.RWMutex
     data map[string]Book
+    Path string
 }
 
 func NewCatalog() *Catalog {
@@ -95,13 +96,14 @@ func OpenCatalog(path string) (*Catalog, error) {
     if err != nil {
         return nil, err
     }
+    catalog.Path = path
     return  catalog, nil
 }
 
-func (c *Catalog) Sync(path string) error {
+func (c *Catalog) Sync() error {
     c.mu.RLock()
     defer c.mu.RUnlock()
-    file, err := os.Create(path)
+    file, err := os.Create(c.Path)
     if err != nil {
         return  err
     }
