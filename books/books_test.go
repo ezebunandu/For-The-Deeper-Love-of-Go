@@ -270,60 +270,24 @@ func TestServer__ListsAllBooks(t *testing.T){
 
 }
 
-func TestServer__FindBookABC(t *testing.T){
+func TestGetBook__OnClientFindsBookByID(t *testing.T){
     t.Parallel()
-    addr := randomLocalAddr(t)
-    go func(){
-        err := books.ListenAndServe(addr, getTestCatalog())
-        if err != nil {
-            panic(err)
-        }
-    }()
-    resp, err := http.Get("http://" + addr + "/v1/find/abc")
+    client := getTestClient(t)
+    got, err := client.GetBook("abc")
     if err != nil {
         t.Fatal(err)
     }
-    defer resp.Body.Close()
-    if resp.StatusCode != http.StatusOK {
-        t.Fatalf("unexpected status %d", resp.StatusCode)
+    if got != ABC {
+        t.Fatalf("want %#v, got %#v", ABC, got)
     }
-    got := books.Book{}
-    data, err := io.ReadAll(resp.Body)
-    if err != nil {
-        t.Fatal(err)
-    }
-    err = json.Unmarshal(data, &got)
-    if err != nil {
-        t.Fatalf("%v in %q", err, data)
-    }
-    want := books.Book{
-        ID: "abc",
-        Title: "Purple Hibiscus",
-        Author: "Chimamanda Ngozi Adichie",
-        Copies: 1,
-    }
-    if want != got {
-        t.Fatalf("want %#v, got %#v", want, got)
-    }
-
 }
 
-func TestFind__ReturnsNotFoundWhenBookNotFound(t *testing.T){
+func TestFind__ReturnsErrorWhenBookNotFound(t *testing.T){
     t.Parallel()
-    addr := randomLocalAddr(t)
-    go func(){
-        err := books.ListenAndServe(addr, getTestCatalog())
-        if err != nil {
-            panic(err)
-        }
-    }()
-    resp, err := http.Get("http://" + addr + "/v1/find/bogus")
-    if err != nil {
-        t.Fatal(err)
-    }
-    defer resp.Body.Close()
-    if resp.StatusCode != http.StatusNotFound {
-        t.Fatalf("unexpected status %d", resp.StatusCode)
+    client := getTestClient(t)
+    _, err := client.GetBook("bogus")
+    if err == nil {
+        t.Fatal("want error when book ID does not exist but got none")
     }
 }
 
@@ -335,4 +299,33 @@ func randomLocalAddr(t *testing.T) string {
     }
     defer l.Close()
     return l.Addr().String()
+}
+
+var (
+    ABC = books.Book{
+        ID:     "abc",
+        Title:  "Purple Hibiscus",
+        Author: "Chimamanda Ngozi Adichie",
+        Copies: 1,
+    }
+    XYZ = books.Book{
+        ID:     "xyz",
+        Title:  "The Thing Around Your Neck",
+        Author: "Chimamanda Ngozi Adichie",
+        Copies: 1,
+    }
+)
+
+func getTestClient(t *testing.T) *books.Client {
+    t.Helper()
+    addr := randomLocalAddr(t)
+    catalog := getTestCatalog()
+    catalog.Path = t.TempDir() + "/catalog"
+    go func(){
+        err := books.ListenAndServe(addr, catalog)
+        if err != nil {
+            panic(err)
+        }
+    }()
+    return books.NewClient(addr)
 }
