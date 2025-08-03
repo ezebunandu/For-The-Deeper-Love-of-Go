@@ -41,3 +41,25 @@ func (client *Client) GetBook(ID string) (Book, error) {
     }
     return  book, nil
 }
+
+func(client *Client) GetAllBooks() ([]Book, error){
+    path := fmt.Sprintf("http://%s/v1/list", client.addr)
+    resp, err := http.Get(path)
+    if err != nil {
+        return nil, err
+    }
+    defer resp.Body.Close()
+    if resp.StatusCode != http.StatusOK {
+        return nil, fmt.Errorf("unexpected status %q", resp.Status)
+    }
+    books := []Book{}
+    data, err := io.ReadAll(resp.Body)
+    if err != nil {
+        return  nil, err
+    }
+    err = json.Unmarshal(data, &books)
+    if err != nil {
+        return nil, fmt.Errorf("%v in %q", err, data)
+    }
+    return  books, nil
+}
