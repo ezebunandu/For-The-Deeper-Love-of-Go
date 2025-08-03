@@ -24,6 +24,9 @@ func (client *Client) GetBook(ID string) (Book, error) {
         return Book{}, err
     }
     defer resp.Body.Close()
+    if resp.StatusCode == http.StatusNotFound {
+        return Book{}, fmt.Errorf("%q not found", ID)
+    }
     if resp.StatusCode != http.StatusOK {
         return Book{}, fmt.Errorf("unexpected status %q", resp.Status)
     }
