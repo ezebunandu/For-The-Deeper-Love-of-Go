@@ -140,4 +140,16 @@ func (catalog *Catalog) GetCopies(ID string) (int, error){
     return  book.Copies, nil
 }
 
+func (c *Catalog) AddCopies(ID string, copies int) (int, error) {
+    c.mu.Lock()
+    defer c.mu.Unlock()
+    book, ok := c.data[ID]
+    if !ok {
+        return 0, fmt.Errorf("ID %q not in found", ID)
+    }
+    book.Copies += copies
+    c.data[ID] = book
+    return book.Copies, nil
+}
+
 
