@@ -237,7 +237,7 @@ func TestNewCatalog__CreatesEmptyCatalog(t *testing.T){
     }
 }
 
-func TestServer__ListsAllBooks(t *testing.T){
+func TestGetAllBooks__OnClientListsAllBooks(t *testing.T){
     t.Parallel()
     client := getTestClient(t)
     books, err := client.GetAllBooks()
