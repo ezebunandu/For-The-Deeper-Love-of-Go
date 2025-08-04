@@ -306,3 +306,25 @@ func getTestClient(t *testing.T) *books.Client {
     }()
     return books.NewClient(addr)
 }
+
+func TestGetCopies__OnClientReturnsCopiesOfBook(t *testing.T){
+    t.Parallel()
+    client := getTestClient(t)
+    copies, err := client.GetCopies("abc")
+    if err != nil {
+        t.Fatal(err)
+    }
+    want := 1 
+    if copies != want {
+        t.Fatalf("want %d, got %d", want, copies)
+    }
+}
+
+func TestGetCopies__OnClientReturnsErrorWhenBookNotFound(t *testing.T){
+    t.Parallel()
+    client := getTestClient(t)
+    _, err := client.GetCopies("bogus")
+    if err == nil {
+        t.Fatal("want error when book does not exist but got none")
+    }
+}

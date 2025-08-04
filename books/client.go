@@ -59,3 +59,12 @@ func (client *Client)MakeAPIRequest(URI string, result any) error {
     
     return nil
 }
+
+func (client *Client) GetCopies(ID string) (int, error) {
+    var copies int
+    err := client.MakeAPIRequest("getcopies/"+ID, &copies)
+    if err != nil {
+        return 0, err
+    }
+    return  copies, nil
+}
