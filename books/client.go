@@ -2,6 +2,7 @@ package books
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -18,48 +19,43 @@ func NewClient(addr string) *Client {
 }
 
 func (client *Client) GetBook(ID string) (Book, error) {
-    path := fmt.Sprintf("http://%s/v1/find/%s", client.addr, ID)
-    resp, err := http.Get(path)
+    book := Book{}
+    err := client.MakeAPIRequest("find/"+ID, &book)
     if err != nil {
         return Book{}, err
-    }
-    defer resp.Body.Close()
-    if resp.StatusCode == http.StatusNotFound {
-        return Book{}, fmt.Errorf("%q not found", ID)
-    }
-    if resp.StatusCode != http.StatusOK {
-        return Book{}, fmt.Errorf("unexpected status %q", resp.Status)
-    }
-    book := Book{}
-    data, err := io.ReadAll(resp.Body)
-    if err != nil {
-        return  Book{}, err
-    }
-    err = json.Unmarshal(data, &book)
-    if err != nil {
-        return Book{}, fmt.Errorf("%v in %q", err, data)
     }
     return  book, nil
 }
 
 func(client *Client) GetAllBooks() ([]Book, error){
-    path := fmt.Sprintf("http://%s/v1/list", client.addr)
-    resp, err := http.Get(path)
-    if err != nil {
-        return nil, err
-    }
-    defer resp.Body.Close()
-    if resp.StatusCode != http.StatusOK {
-        return nil, fmt.Errorf("unexpected status %q", resp.Status)
-    }
     books := []Book{}
-    data, err := io.ReadAll(resp.Body)
+    err := client.MakeAPIRequest("list", &books)
     if err != nil {
         return  nil, err
     }
-    err = json.Unmarshal(data, &books)
+    return books, nil
+}
+
+func (client *Client)MakeAPIRequest(URI string, result any) error {
+    resp, err := http.Get("http://" + client.addr + "/v1/" + URI)
     if err != nil {
-        return nil, fmt.Errorf("%v in %q", err, data)
+        return  err
     }
-    return  books, nil
+    defer resp.Body.Close()
+    if resp.StatusCode == http.StatusNotFound {
+        return errors.New("not found")
+    }
+    if resp.StatusCode != http.StatusOK {
+        return fmt.Errorf("unexpected status code %#v", resp.StatusCode)
+    }
+    data, err := io.ReadAll(resp.Body)
+    if err != nil {
+        return err
+    }
+    err = json.Unmarshal(data, result)
+    if err != nil {
+        return  fmt.Errorf("%v in %q", err, data)
+    }
+    
+    return nil
 }
