@@ -2,37 +2,20 @@ package main
 
 import (
 	"books"
-	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
+	"os"
 )
 
 
 
 func main(){
-    resp, err := http.Get("http://localhost:3000/v1/list")
+    client := books.NewClient("localhost:3000")
+    books, err := client.GetAllBooks()
     if err != nil {
-        fmt.Println(err)
+        fmt.Fprintf(os.Stderr, "err: %#v", err)
         return
     }
-    defer resp.Body.Close()
-    if resp.StatusCode != http.StatusOK {
-        fmt.Printf("unexpected status %d", resp.StatusCode)
-        return
-    }  
-    data, err := io.ReadAll(resp.Body)
-    if err != nil {
-        fmt.Println(err)
-        return
-    }
-    bookList := []books.Book{}
-    err = json.Unmarshal(data, &bookList)
-    if err != nil {
-        fmt.Printf("%v in %q", err, data)
-        return
-    }
-    for _, book := range bookList {
+    for _, book := range books {
         fmt.Println(book)
     }
 }
