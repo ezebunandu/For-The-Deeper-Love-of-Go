@@ -356,3 +356,37 @@ func TestAddCopies__OnClientReturnsErrorWhenBookNotFound(t *testing.T){
         t.Fatal("want error when book does not exist but got none")
     }
 }
+func TestSubCopies__OnClientCorrectlyUpdatesStockLevel(t *testing.T){
+    t.Parallel()
+    client := getTestClient(t)
+    copies, err := client.GetCopies("abc")
+    if err != nil {
+        t.Fatal(err)
+    }
+    if copies != 1 {
+        t.Fatalf("want 1 copy before change, got %d", copies)
+    } 
+    stock, err := client.SubCopies("abc", 1)
+    if err != nil {
+        t.Fatal(err)
+    }
+    if stock != 0 {
+        t.Fatalf("want 0 copies after adding 2 to stock, got %d", stock)
+    }
+}
+
+func TestSubCopies__FailsIfStockLevelTooLow(t *testing.T){
+    t.Parallel()
+    client := getTestClient(t)
+    copies, err := client.GetCopies("abc")
+    if err != nil {
+        t.Fatal(err)
+    }
+    if copies != 1 {
+        t.Fatalf("want 1 copy before change, got %d", copies)
+    } 
+    _, err = client.SubCopies("abc", 2)
+    if err == nil {
+        t.Fatal("want error when stock level too low, but got none")
+    } 
+}

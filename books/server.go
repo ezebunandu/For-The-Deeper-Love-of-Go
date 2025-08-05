@@ -2,10 +2,13 @@ package books
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
 )
+
+var ErrNotEnoughStock = errors.New("not enough stock")
 
 func ListenAndServe(addr string, catalog *Catalog) error {
     mux := http.NewServeMux()
@@ -40,7 +43,6 @@ func ListenAndServe(addr string, catalog *Catalog) error {
             panic(err)
         }
     })
-    
     mux.HandleFunc("/v1/addcopies/{id}/{copies}", func(w http.ResponseWriter, r *http.Request) {
         ID := r.PathValue("id")
         copies, err := strconv.Atoi(r.PathValue("copies"))
@@ -56,6 +58,27 @@ func ListenAndServe(addr string, catalog *Catalog) error {
         err = catalog.Sync()
         if err != nil {
             panic(err)
+        }
+        err = json.NewEncoder(w).Encode(stock)
+        if err != nil {
+            panic(err)
+        }
+    })
+    mux.HandleFunc("/v1/subcopies/{id}/{copies}", func(w http.ResponseWriter, r *http.Request) {
+        ID := r.PathValue("id")
+        copies, err := strconv.Atoi(r.PathValue("copies"))
+        if err != nil {
+            http.Error(w, err.Error(), http.StatusBadRequest)
+            return 
+        }
+        stock, err := catalog.SubCopies(ID, copies)
+        if err != nil {
+            if errors.Is(err, ErrNotEnoughStock){
+                http.Error(w, err.Error(), http.StatusBadRequest)
+            } else {
+                http.Error(w, err.Error(), http.StatusNotFound)
+            }
+            return 
         }
         err = json.NewEncoder(w).Encode(stock)
         if err != nil {
