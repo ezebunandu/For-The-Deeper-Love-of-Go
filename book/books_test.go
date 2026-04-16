@@ -8,7 +8,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-func TestBookToString__FormatsBookInfoAsString(t *testing.T) {
+func TestBookToString_FormatsBookInfoAsString(t *testing.T) {
 	input := books.Book{
 		Title:  "Sea Room",
 		Author: "Adam Nicolson",
@@ -21,22 +21,22 @@ func TestBookToString__FormatsBookInfoAsString(t *testing.T) {
 	}
 }
 
-func TestGetAllBooks__ReturnsAllBooks(t *testing.T){
+func TestGetAllBooks_ReturnsAllBooks(t *testing.T) {
 	t.Parallel()
 	want := []books.Book{
 		{
-			Title: "In the Company of Cheerful Ladies",
+			Title:  "In the Company of Cheerful Ladies",
 			Author: "Alexander McCall Smith",
 			Copies: 1,
 		},
 		{
-			Title: "White Heat",
+			Title:  "White Heat",
 			Author: "Dominic Sandbrook",
 			Copies: 2,
 		},
 	}
 	got := books.GetAllBooks()
-	if !slices.Equal(want, got){
+	if !slices.Equal(want, got) {
 		t.Fatalf("want %#v, got %#v", want, got)
 	}
 }

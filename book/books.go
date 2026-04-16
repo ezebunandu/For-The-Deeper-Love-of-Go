@@ -14,12 +14,12 @@ func BookToString(book Book) string {
 
 var catalog = []Book{
 	{
-		Title: "In the Company of Cheerful Ladies",
+		Title:  "In the Company of Cheerful Ladies",
 		Author: "Alexander McCall Smith",
 		Copies: 1,
 	},
 	{
-		Title: "White Heat",
+		Title:  "White Heat",
 		Author: "Dominic Sandbrook",
 		Copies: 2,
 	},
