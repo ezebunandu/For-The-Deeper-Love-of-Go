@@ -4,8 +4,9 @@ import (
 	"books"
 	"slices"
 	"testing"
+	"cmp"
 
-	"github.com/google/go-cmp/cmp"
+	gocmp "github.com/google/go-cmp/cmp"
 )
 
 func TestBookToString_FormatsBookInfoAsString(t *testing.T) {
@@ -17,7 +18,7 @@ func TestBookToString_FormatsBookInfoAsString(t *testing.T) {
 	want := "Sea Room by Adam Nicolson (copies: 2)"
 	got := books.BookToString(input)
 	if want != got {
-		t.Fatal(cmp.Diff(want, got))
+		t.Fatal(gocmp.Diff(want, got))
 	}
 }
 
@@ -28,26 +29,29 @@ func TestGetAllBooks_ReturnsAllBooks(t *testing.T) {
 			Title:  "In the Company of Cheerful Ladies",
 			Author: "Alexander McCall Smith",
 			Copies: 1,
-			ID: "abc",
+			ID:     "abc",
 		},
 		{
 			Title:  "White Heat",
 			Author: "Dominic Sandbrook",
 			Copies: 2,
-			ID: "xyz",
+			ID:     "xyz",
 		},
 	}
 	got := books.GetAllBooks()
+	slices.SortFunc(got, func(a, b books.Book) int {
+		return cmp.Compare(a.Author, b.Author)
+	})
 	if !slices.Equal(want, got) {
 		t.Fatalf("want %#v, got %#v", want, got)
 	}
 }
 
-func TestGetBook_FindsBookInCatalogByID(t *testing.T){
+func TestGetBook_FindsBookInCatalogByID(t *testing.T) {
 	t.Parallel()
 	want := books.Book{
-		ID: "abc",
-		Title: "In the Company of Cheerful Ladies",
+		ID:     "abc",
+		Title:  "In the Company of Cheerful Ladies",
 		Author: "Alexander McCall Smith",
 		Copies: 1,
 	}
@@ -60,7 +64,7 @@ func TestGetBook_FindsBookInCatalogByID(t *testing.T){
 	}
 }
 
-func TestGetBook_ReturnsFalseWhenBookNotFound(t *testing.T){
+func TestGetBook_ReturnsFalseWhenBookNotFound(t *testing.T) {
 	t.Parallel()
 	_, ok := books.GetBook("nonexistent ID")
 	if ok {

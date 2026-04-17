@@ -1,9 +1,13 @@
 package books
 
-import "fmt"
+import (
+	"fmt"
+	"maps"
+	"slices"
+)
 
 type Book struct {
-	ID string
+	ID     string
 	Title  string
 	Author string
 	Copies int
@@ -13,15 +17,16 @@ func BookToString(book Book) string {
 	return fmt.Sprintf("%v by %v (copies: %v)", book.Title, book.Author, book.Copies)
 }
 
-var catalog = []Book{
-	{
-		ID: "abc",
+var catalog = map[string]Book{
+	"abc": {
+
+		ID:     "abc",
 		Title:  "In the Company of Cheerful Ladies",
 		Author: "Alexander McCall Smith",
 		Copies: 1,
 	},
-	{
-		ID: "xyz",
+	"xyz": {
+		ID:     "xyz",
 		Title:  "White Heat",
 		Author: "Dominic Sandbrook",
 		Copies: 2,
@@ -29,14 +34,10 @@ var catalog = []Book{
 }
 
 func GetAllBooks() []Book {
-	return catalog
+	return slices.Collect(maps.Values(catalog))
 }
-	
+
 func GetBook(id string) (Book, bool) {
-	for _, b := range catalog {
-		if b.ID == id {
-			return b, true
-		}
-	}
-	return Book{}, false
+	book, ok := catalog[id]
+	return book, ok
 }
