@@ -2,9 +2,9 @@ package books_test
 
 import (
 	"books"
+	"cmp"
 	"slices"
 	"testing"
-	"cmp"
 
 	gocmp "github.com/google/go-cmp/cmp"
 )
@@ -38,7 +38,8 @@ func TestGetAllBooks_ReturnsAllBooks(t *testing.T) {
 			ID:     "xyz",
 		},
 	}
-	got := books.GetAllBooks()
+	catalog := getTestCatalog()
+	got := books.GetAllBooks(catalog)
 	slices.SortFunc(got, func(a, b books.Book) int {
 		return cmp.Compare(a.Author, b.Author)
 	})
@@ -49,13 +50,14 @@ func TestGetAllBooks_ReturnsAllBooks(t *testing.T) {
 
 func TestGetBook_FindsBookInCatalogByID(t *testing.T) {
 	t.Parallel()
+	catalog := getTestCatalog()
 	want := books.Book{
 		ID:     "abc",
 		Title:  "In the Company of Cheerful Ladies",
 		Author: "Alexander McCall Smith",
 		Copies: 1,
 	}
-	got, ok := books.GetBook("abc")
+	got, ok := books.GetBook(catalog, "abc")
 	if !ok {
 		t.Fatal("book not found")
 	}
@@ -66,8 +68,47 @@ func TestGetBook_FindsBookInCatalogByID(t *testing.T) {
 
 func TestGetBook_ReturnsFalseWhenBookNotFound(t *testing.T) {
 	t.Parallel()
-	_, ok := books.GetBook("nonexistent ID")
+	catalog := getTestCatalog()
+	_, ok := books.GetBook(catalog, "nonexistent ID")
 	if ok {
 		t.Fatal("want false for nonexistent ID, got true")
+	}
+}
+
+func TestAddBook_AddsGivenBookToCatalog(t *testing.T){
+	t.Parallel()
+	catalog := getTestCatalog()
+	_, ok := books.GetBook(catalog, "123")
+	if ok {
+		t.Fatal("book already present")
+	}
+	b := books.Book{
+		ID: "123",
+		Title: "The Prize of all the Oceans",
+		Author: "Glyn Williams",
+		Copies: 2,
+	}
+	books.AddBook(catalog, b)
+	_, ok = books.GetBook(catalog, b.ID)
+	if !ok {
+		t.Fatal("added book not found")
+	}
+}
+
+func getTestCatalog() map[string]books.Book{
+	return map[string]books.Book{
+		"abc": {
+
+			ID:     "abc",
+			Title:  "In the Company of Cheerful Ladies",
+			Author: "Alexander McCall Smith",
+			Copies: 1,
+		},
+		"xyz": {
+			ID:     "xyz",
+			Title:  "White Heat",
+			Author: "Dominic Sandbrook",
+			Copies: 2,
+		},
 	}
 }
