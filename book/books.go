@@ -17,6 +17,14 @@ func (book Book) String() string {
 	return fmt.Sprintf("%v by %v (copies: %v)", book.Title, book.Author, book.Copies)
 }
 
+func (book *Book) SetCopies(copies int) error {
+	if copies < 0 {
+		return fmt.Errorf("negative number of copies: %d", copies)
+	}
+	book.Copies = copies
+	return nil
+}
+
 type Catalog map[string]Book
 
 var catalog = Catalog{
