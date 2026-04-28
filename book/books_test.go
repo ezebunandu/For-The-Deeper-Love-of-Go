@@ -24,28 +24,9 @@ func TestBookToString_FormatsBookInfoAsString(t *testing.T) {
 
 func TestGetAllBooks_ReturnsAllBooks(t *testing.T) {
 	t.Parallel()
-	want := []books.Book{
-		{
-			Title:  "In the Company of Cheerful Ladies",
-			Author: "Alexander McCall Smith",
-			Copies: 1,
-			ID:     "abc",
-		},
-		{
-			Title:  "White Heat",
-			Author: "Dominic Sandbrook",
-			Copies: 2,
-			ID:     "xyz",
-		},
-	}
 	catalog := getTestCatalog()
-	got := catalog.GetAllBooks()
-	slices.SortFunc(got, func(a, b books.Book) int {
-		return cmp.Compare(a.Author, b.Author)
-	})
-	if !slices.Equal(want, got) {
-		t.Fatalf("want %#v, got %#v", want, got)
-	}
+	bookList := catalog.GetAllBooks()
+	assertTestBooks(t, bookList)
 }
 
 func TestGetBook_FindsBookInCatalogByID(t *testing.T) {
@@ -75,7 +56,7 @@ func TestGetBook_ReturnsFalseWhenBookNotFound(t *testing.T) {
 	}
 }
 
-func TestAddBook_AddsGivenBookToCatalog(t *testing.T){
+func TestAddBook_AddsGivenBookToCatalog(t *testing.T) {
 	t.Parallel()
 	catalog := getTestCatalog()
 	_, ok := catalog.GetBook("123")
@@ -83,8 +64,8 @@ func TestAddBook_AddsGivenBookToCatalog(t *testing.T){
 		t.Fatal("book already present")
 	}
 	b := books.Book{
-		ID: "123",
-		Title: "The Prize of all the Oceans",
+		ID:     "123",
+		Title:  "The Prize of all the Oceans",
 		Author: "Glyn Williams",
 		Copies: 2,
 	}
@@ -95,7 +76,7 @@ func TestAddBook_AddsGivenBookToCatalog(t *testing.T){
 	}
 }
 
-func TestSetCopies_SetsNumberOfCopiesToGivenValue(t *testing.T){
+func TestSetCopies_SetsNumberOfCopiesToGivenValue(t *testing.T) {
 	t.Parallel()
 	book := books.Book{
 		Copies: 5,
@@ -112,41 +93,42 @@ func TestSetCopies_SetsNumberOfCopiesToGivenValue(t *testing.T){
 func TestSetCopies_ReturnsErrorGivenNegativeCopies(t *testing.T) {
 	t.Parallel()
 	book := books.Book{}
-	err:= book.SetCopies(-1)
+	err := book.SetCopies(-1)
 	if err == nil {
 		t.Fatal("want error given negative copies but got none")
 	}
 }
 
-func TestOpenCatalog_LoadsCatalogDataFromFile(t *testing.T) {
+func TestOpenCatalog_ReadsSameDataWrittenBySync(t *testing.T) {
 	t.Parallel()
-	catalog, err := books.OpenCatalog("testdata/catalog")
+	catalog := getTestCatalog()
+	path := t.TempDir() + "/catalog"
+	err := catalog.Sync(path)
 	if err != nil {
 		t.Fatal(err)
 	}
-	want := []books.Book{
-		{
-
-			ID:     "abc",
-			Title:  "In the Company of Cheerful Ladies",
-			Author: "Alexander McCall Smith",
-			Copies: 1,
-		},
-		{
-			ID:     "xyz",
-			Title:  "White Heat",
-			Author: "Dominic Sandbrook",
-			Copies: 2,
-		},
+	newCatalog, err := books.OpenCatalog(path)
+	if err != nil {
+		t.Fatal(err)
 	}
-	got := catalog.GetAllBooks()
-	slices.SortFunc(got, func(a, b books.Book) int {
-		return cmp.Compare(a.Author, b.Author)
-	})
-	if !slices.Equal(want, got) {
-		t.Fatal(gocmp.Diff(got, want))
-	}
+	bookList := newCatalog.GetAllBooks()
+	assertTestBooks(t, bookList)
 }
+
+// func TestSync_WritesCatalogDataToFile(t *testing.T) {
+// 	t.Parallel()
+// 	catalog := getTestCatalog()
+// 	err := catalog.Sync("testdata/catalog.new")
+// 	if err != nil {
+// 		t.Fatal(err)
+// 	}
+// 	newCatalog, err := books.OpenCatalog("testdata/catalog.new")
+// 	if err != nil {
+// 		t.Fatal(err)
+// 	}
+// 	bookList := newCatalog.GetAllBooks()
+// 	assertTestBooks(t, bookList)
+// }
 
 func getTestCatalog() books.Catalog {
 	return books.Catalog{
@@ -163,5 +145,29 @@ func getTestCatalog() books.Catalog {
 			Author: "Dominic Sandbrook",
 			Copies: 2,
 		},
+	}
+}
+
+func assertTestBooks(t *testing.T, got []books.Book){
+	t.Helper()
+	want := []books.Book{
+		{
+			ID:     "abc",
+			Title:  "In the Company of Cheerful Ladies",
+			Author: "Alexander McCall Smith",
+			Copies: 1,
+		},
+		{
+			ID:     "xyz",
+			Title:  "White Heat",
+			Author: "Dominic Sandbrook",
+			Copies: 2,
+		},
+	}
+	slices.SortFunc(got, func(a, b books.Book) int {
+		return cmp.Compare(a.Author, b.Author)
+	})
+	if !slices.Equal(want, got) {
+		t.Fatalf("want %#v, got %#v", want, got)
 	}
 }
