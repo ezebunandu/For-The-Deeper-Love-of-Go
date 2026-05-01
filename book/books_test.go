@@ -76,6 +76,7 @@ func TestAddBook_AddsGivenBookToCatalog(t *testing.T) {
 	}
 }
 
+
 func TestSetCopies_SetsNumberOfCopiesToGivenValue(t *testing.T) {
 	t.Parallel()
 	book := books.Book{
@@ -115,20 +116,28 @@ func TestOpenCatalog_ReadsSameDataWrittenBySync(t *testing.T) {
 	assertTestBooks(t, bookList)
 }
 
-// func TestSync_WritesCatalogDataToFile(t *testing.T) {
-// 	t.Parallel()
-// 	catalog := getTestCatalog()
-// 	err := catalog.Sync("testdata/catalog.new")
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
-// 	newCatalog, err := books.OpenCatalog("testdata/catalog.new")
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
-// 	bookList := newCatalog.GetAllBooks()
-// 	assertTestBooks(t, bookList)
-// }
+func TestSetCopies_OnCatalogModifiesSpecifiedBook(t *testing.T){
+	t.Parallel()
+	catalog := getTestCatalog()
+	book, ok := catalog.GetBook("abc")
+	if !ok {
+		t.Fatal("book not found")
+	}
+	if book.Copies != 1 {
+		t.Fatalf("want 1 copy before change, got %d", book.Copies)
+	}
+	err := catalog.SetCopies("abc", 2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	book, ok = catalog.GetBook("abc")
+	if !ok{
+		t.Fatal("book not found")
+	}
+	if book.Copies != 2 {
+		t.Fatalf("want 2 copies after change, got %d", book.Copies)
+	}
+}
 
 func getTestCatalog() books.Catalog {
 	return books.Catalog{

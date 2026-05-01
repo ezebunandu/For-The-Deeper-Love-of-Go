@@ -29,22 +29,6 @@ func (book *Book) SetCopies(copies int) error {
 
 type Catalog map[string]Book
 
-// var catalog = Catalog{
-// 	"abc": {
-
-// 		ID:     "abc",
-// 		Title:  "In the Company of Cheerful Ladies",
-// 		Author: "Alexander McCall Smith",
-// 		Copies: 1,
-// 	},
-// 	"xyz": {
-// 		ID:     "xyz",
-// 		Title:  "White Heat",
-// 		Author: "Dominic Sandbrook",
-// 		Copies: 2,
-// 	},
-// }
-
 func (catalog Catalog) GetAllBooks() []Book {
 	return slices.Collect(maps.Values(catalog))
 }
@@ -81,5 +65,18 @@ func (catalog Catalog) Sync(path string) error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func (catalog Catalog) SetCopies(ID string, copies int) error {
+	book, ok := catalog.GetBook(ID)
+	if !ok {
+		return fmt.Errorf("not found: %q", ID)
+	}
+	err := book.SetCopies(copies)
+	if err != nil {
+		return err
+	}
+	catalog[ID] = book
 	return nil
 }
