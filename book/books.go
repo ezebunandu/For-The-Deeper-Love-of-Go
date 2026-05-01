@@ -29,32 +29,32 @@ func (book *Book) SetCopies(copies int) error {
 
 type Catalog map[string]Book
 
-var catalog = Catalog{
-	"abc": {
+// var catalog = Catalog{
+// 	"abc": {
 
-		ID:     "abc",
-		Title:  "In the Company of Cheerful Ladies",
-		Author: "Alexander McCall Smith",
-		Copies: 1,
-	},
-	"xyz": {
-		ID:     "xyz",
-		Title:  "White Heat",
-		Author: "Dominic Sandbrook",
-		Copies: 2,
-	},
+// 		ID:     "abc",
+// 		Title:  "In the Company of Cheerful Ladies",
+// 		Author: "Alexander McCall Smith",
+// 		Copies: 1,
+// 	},
+// 	"xyz": {
+// 		ID:     "xyz",
+// 		Title:  "White Heat",
+// 		Author: "Dominic Sandbrook",
+// 		Copies: 2,
+// 	},
+// }
+
+func (catalog Catalog) GetAllBooks() []Book {
+	return slices.Collect(maps.Values(catalog))
 }
 
-func (c Catalog) GetAllBooks() []Book {
-	return slices.Collect(maps.Values(c))
-}
-
-func (c Catalog) GetBook(id string) (Book, bool) {
+func (catalog Catalog) GetBook(id string) (Book, bool) {
 	book, ok := catalog[id]
 	return book, ok
 }
 
-func (c Catalog) AddBook(b Book) {
+func (catalog Catalog) AddBook(b Book) {
 	catalog[b.ID] = b
 }
 
