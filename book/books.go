@@ -38,8 +38,13 @@ func (catalog Catalog) GetBook(id string) (Book, bool) {
 	return book, ok
 }
 
-func (catalog Catalog) AddBook(b Book) {
+func (catalog Catalog) AddBook(b Book) error {
+	_, ok := catalog.GetBook(b.ID)
+	if ok {
+		return fmt.Errorf("ID %q already in catalog", b.ID)
+	}
 	catalog[b.ID] = b
+	return nil
 }
 
 func OpenCatalog(path string) (Catalog, error) {

@@ -69,11 +69,32 @@ func TestAddBook_AddsGivenBookToCatalog(t *testing.T) {
 		Author: "Glyn Williams",
 		Copies: 2,
 	}
-	catalog.AddBook(b)
+	err := catalog.AddBook(b)
+	if err != nil {
+		t.Fatal(err)
+	}
 	_, ok = catalog.GetBook(b.ID)
 	if !ok {
 		t.Fatal("added book not found")
 	}
+}
+
+func TestAddBook_ReturnsErrorForBookAlreadyInCatalog(t *testing.T){
+	t.Parallel()
+	catalog := getTestCatalog()
+	_, ok := catalog.GetBook("abc")
+	if !ok {
+		t.Fatal("book not present")
+	}
+	err := catalog.AddBook(books.Book{
+		ID:     "abc",
+		Title:  "In the Company of Cheerful Ladies",
+		Author: "Alexander McCall Smith",
+	})
+	if err == nil {
+		t.Fatal("want error when book already in catalog but got none")
+	}
+	
 }
 
 
