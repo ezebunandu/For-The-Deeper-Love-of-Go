@@ -94,9 +94,7 @@ func TestAddBook_ReturnsErrorForBookAlreadyInCatalog(t *testing.T){
 	if err == nil {
 		t.Fatal("want error when book already in catalog but got none")
 	}
-	
 }
-
 
 func TestSetCopies_SetsNumberOfCopiesToGivenValue(t *testing.T) {
 	t.Parallel()
@@ -125,7 +123,8 @@ func TestOpenCatalog_ReadsSameDataWrittenBySync(t *testing.T) {
 	t.Parallel()
 	catalog := getTestCatalog()
 	path := t.TempDir() + "/catalog"
-	err := catalog.Sync(path)
+	catalog.Path = path
+	err := catalog.Sync()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -160,22 +159,55 @@ func TestSetCopies_OnCatalogModifiesSpecifiedBook(t *testing.T){
 	}
 }
 
-func getTestCatalog() books.Catalog {
-	return books.Catalog{
-		"abc": {
-
-			ID:     "abc",
-			Title:  "In the Company of Cheerful Ladies",
-			Author: "Alexander McCall Smith",
-			Copies: 1,
-		},
-		"xyz": {
-			ID:     "xyz",
-			Title:  "White Heat",
-			Author: "Dominic Sandbrook",
-			Copies: 2,
-		},
+func TestSetCopies_IsRaceFree(t *testing.T) {
+	t.Parallel()
+	catalog := getTestCatalog()
+	go func() {
+		for range 100 {
+			err := catalog.SetCopies("abc", 0)
+			if err != nil {
+				panic(err)
+			}
+		}
+	}()
+	for range 100 {
+		_, err := catalog.GetCopies("abc")
+		if err != nil {
+			t.Fatal(err)
+		}
 	}
+}
+
+func TestNewCatalog_CreatesEmptyCatalog(t *testing.T) {
+	t.Parallel()
+	catalog := books.NewCatalog()
+	books := catalog.GetAllBooks()
+	if len(books) > 0 {
+		t.Errorf("want empty catalog, got %#v", books)
+	}
+}
+
+func getTestCatalog() *books.Catalog {
+	catalog := books.NewCatalog()
+	err := catalog.AddBook(books.Book{
+		ID:     "abc",
+		Title:  "In the Company of Cheerful Ladies",
+		Author: "Alexander McCall Smith",
+		Copies: 1,
+	})
+	if err != nil {
+		panic(err)
+	}
+	err = catalog.AddBook(books.Book{
+		ID:     "xyz",
+		Title:  "White Heat",
+		Author: "Dominic Sandbrook",
+		Copies: 2,
+	})
+	if err != nil {
+		panic(err)
+	}
+	return catalog
 }
 
 func assertTestBooks(t *testing.T, got []books.Book){

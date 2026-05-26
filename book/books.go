@@ -6,6 +6,7 @@ import (
 	"maps"
 	"os"
 	"slices"
+	"sync"
 )
 
 type Book struct {
@@ -27,61 +28,92 @@ func (book *Book) SetCopies(copies int) error {
 	return nil
 }
 
-type Catalog map[string]Book
-
-func (catalog Catalog) GetAllBooks() []Book {
-	return slices.Collect(maps.Values(catalog))
+type Catalog struct {
+	mu   *sync.RWMutex
+	data map[string]Book
+	Path string
 }
 
-func (catalog Catalog) GetBook(id string) (Book, bool) {
-	book, ok := catalog[id]
+func NewCatalog() *Catalog {
+	return &Catalog{
+		mu:   &sync.RWMutex{},
+		data: map[string]Book{},
+	}
+}
+
+func (catalog *Catalog) GetAllBooks() []Book {
+	catalog.mu.RLock()
+	defer catalog.mu.RUnlock()
+	return slices.Collect(maps.Values(catalog.data))
+}
+
+func (catalog *Catalog) GetBook(id string) (Book, bool) {
+	catalog.mu.RLock()
+	defer catalog.mu.RUnlock()
+	book, ok := catalog.data[id]
 	return book, ok
 }
 
-func (catalog Catalog) AddBook(b Book) error {
+func (catalog *Catalog) AddBook(b Book) error {
 	_, ok := catalog.GetBook(b.ID)
 	if ok {
 		return fmt.Errorf("ID %q already in catalog", b.ID)
 	}
-	catalog[b.ID] = b
+	catalog.mu.Lock()
+	defer catalog.mu.Unlock()
+	catalog.data[b.ID] = b
 	return nil
 }
 
-func OpenCatalog(path string) (Catalog, error) {
+func OpenCatalog(path string) (*Catalog, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err
 	}
 	defer file.Close()
-	c := Catalog{}
-	err = json.NewDecoder(file).Decode(&c)
+	catalog := NewCatalog()
+	err = json.NewDecoder(file).Decode(&catalog.data)
 	if err != nil {
 		return nil, err
 	}
-	return c, nil
+	catalog.Path = path
+	return catalog, nil
 }
 
-func (catalog Catalog) Sync(path string) error {
-	file, err := os.Create(path)
+func (catalog *Catalog) Sync() error {
+	catalog.mu.RLock()
+	defer catalog.mu.RUnlock()
+	file, err := os.Create(catalog.Path)
 	if err != nil {
 		return err
 	}
-	err = json.NewEncoder(file).Encode(catalog)
+	defer file.Close()
+	err = json.NewEncoder(file).Encode(catalog.data)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (catalog Catalog) SetCopies(ID string, copies int) error {
+func (catalog *Catalog) SetCopies(ID string, copies int) error {
 	book, ok := catalog.GetBook(ID)
 	if !ok {
 		return fmt.Errorf("not found: %q", ID)
 	}
+	catalog.mu.Lock()
+	defer catalog.mu.Unlock()
 	err := book.SetCopies(copies)
 	if err != nil {
 		return err
 	}
-	catalog[ID] = book
+	catalog.data[ID] = book
 	return nil
+}
+
+func (catalog *Catalog) GetCopies(ID string) (int, error) {
+	book, ok := catalog.GetBook(ID)
+	if !ok {
+		return 0, fmt.Errorf("ID %q not found", ID)
+	}
+	return book.Copies, nil
 }
